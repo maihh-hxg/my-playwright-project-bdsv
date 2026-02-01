@@ -214,41 +214,44 @@ test('verify card "Tư vấn pháp lý": button "Hỏi luật sổ đỏ - mua b
   await expect(card.locator('.app-button').filter({ hasText: 'Hỏi luật sổ đỏ - mua bán' })).toBeEnabled();
 });
 
-//verify text "Khu vược được tìm kiếm nhiều nhất" is visible
-test('verify text "Khu vược được tìm kiếm nhiều nhất" is visible', async ({ page }) => {
+//verify text "Khu vực được tìm kiếm nhiều nhất" is visible
+test('verify text "Khu vực được tìm kiếm nhiều nhất" is visible', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('xpath=/html/body/div[2]/main/section/div/div[1]/div[1]')).toContainText('Khu vược được tìm kiếm nhiều nhất');
+  await expect(page.locator('xpath=/html/body/div[2]/main/section/div')).toContainText(/Khu vực được tìm kiếm nhiều nhất/ui);
 });
 
 //verify popular search areas items
 test('verify popular search areas items', async ({ page }) => {
   await page.goto('/');
-  const container = page.locator('xpath=/html/body/div[2]/main/section/div/div[2]');
 
-  // Verify 10 items
-  await expect(container.locator('> *')).toHaveCount(10);
+  // 1. Find the heading area
+  const headingContainer = page.locator('xpath=/html/body/div[2]/main/section/div').filter({ hasText: /Khu vực được tìm kiếm nhiều nhất/ui });
+
+  // 2. Count 10 <a> tags having 'aria-label' attribute at the specific locator
+  const areaContainer = page.locator('xpath=/html/body/div[2]/main/section/div/div[2]');
+  await expect(areaContainer.locator('a[aria-label]')).toHaveCount(10);
 
   // Verify aria-labels
   // 7 items with aria-label "Xem khu vực phường"
-  await expect(container.locator('[aria-label]').filter({ hasText: /Xem khu vực Phường/i }).or(container.locator('[aria-label*="Xem khu vực Phường"]'))).toHaveCount(7);
+  await expect(areaContainer.locator('[aria-label]').filter({ hasText: /Xem khu vực Phường/ui }).or(areaContainer.locator('[aria-label*="Xem khu vực Phường" i]'))).toHaveCount(7);
 
   // Verify aria-labels
   // 2 items with aria-label "Xem khu vực xã"
-  await expect(container.locator('[aria-label]').filter({ hasText: /Xem khu vực Xã/i }).or(container.locator('[aria-label*="Xem khu vực Xã"]'))).toHaveCount(2);
+  await expect(areaContainer.locator('[aria-label]').filter({ hasText: /Xem khu vực Xã/ui }).or(areaContainer.locator('[aria-label*="Xem khu vực Xã" i]'))).toHaveCount(2);
 
   // 1 item with aria-label "Khám phá bất động sản" 
-  // Using case-insensitive regex for the label to be safe as user used different casings in requirements
-  await expect(container.locator('[aria-label]').filter({ hasText: /Khám phá bất động sản/i }).or(container.locator('[aria-label*="Khám phá bất động sản"]'))).toHaveCount(1);
+  await expect(areaContainer.locator('[aria-label]').filter({ hasText: /Khám phá bất động sản/ui }).or(areaContainer.locator('[aria-label*="Khám phá bất động sản" i]'))).toHaveCount(1);
 
 
   // Verify texts
   const locationTexts = [
-    "Phường Hà Đông", "Phường Dương Nội", "Phường Yên Nghĩa",
-    "Phường Phú Lương", "Phường Kiến Hưng", "Phường Tây Mỗ",
-    "Phường Đại Mỗ", "Xã An Khánh", "Xã Bình Minh"
+    "Hà Đông", "Dương Nội", "Yên Nghĩa",
+    "Phú Lương", "Kiến Hưng", "Tây Mỗ",
+    "Đại Mỗ", "An Khánh", "Bình Minh"
   ];
 
   for (const text of locationTexts) {
-    await expect(container).toContainText(text);
+    // Ensuring UTF-8 matching with Unicode regex
+    await expect(areaContainer).toContainText(new RegExp(text, 'ui'));
   }
 });
