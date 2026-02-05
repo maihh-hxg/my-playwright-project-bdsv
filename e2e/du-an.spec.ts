@@ -41,6 +41,7 @@ test.describe('Dự án BĐS Screen', () => {
         console.log(`Results for ${keyword}: ${await listings.count()}`);
     });
 
+    //reset button
     test('verify reset button works', async ({ page }) => {
         const searchInput = page.getByPlaceholder('Nhập từ khoá');
         await searchInput.fill('Test Project');
@@ -55,5 +56,18 @@ test.describe('Dự án BĐS Screen', () => {
         const pagination = page.locator('ul.ant-pagination, .ant-pagination');
         const page2 = page.getByText('2', { exact: true });
         await expect(pagination.first().or(page2.first())).toBeVisible();
+    });
+
+    //verify button "Tất cả dự án"
+    test('verify button "Tất cả dự án" is visible', async ({ page }) => {
+        const button = page.getByRole('button', { name: 'Tất cả dự án' });
+        await expect(button).toBeVisible();
+    });
+
+    //verify button "Tất cả dự án" is clickable
+    test('verify button "Tất cả dự án" is clickable', async ({ page }) => {
+        const button = page.getByText('Tất cả dự án');
+        await button.click();
+        expect(button).toBeChecked;
     });
 });
