@@ -62,7 +62,37 @@ test.describe('Thuê BĐS Screen', () => {
         // Check for either page 2 or the next button
         await expect(page2.first().or(nextBtn.first())).toBeVisible();
     });
-});
 
-//Test push
-//Đơn giản chỉ là comment
+    const expectedCities = [
+        "Tất cả", "Hà Nội", "Hồ Chí Minh", "An Giang", "Bắc Ninh", "Cà Mau",
+        "Cần Thơ", "Cao Bằng", "Đắk Lắk", "Đà Nẵng", "Điện Biên", "Đồng Nai",
+        "Đồng Tháp", "Gia Lai", "Hải Phòng", "Hà Tĩnh", "Huế", "Hưng Yên",
+        "Khánh Hòa", "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Nghệ An",
+        "Ninh Bình", "Phú Thọ", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị",
+        "Sơn La", "Tây Ninh", "Thái Nguyên", "Thanh Hoá", "Tuyên Quang", "Vĩnh Long"
+    ];
+
+    test('verify "Thành phố" dropdown contains correct data', async ({ page }) => {
+        await page.getByRole('button', { name: 'Thành phố' }).first().click();
+        const dropdownList = page.getByRole('listbox');
+        await expect(dropdownList).toBeVisible();
+
+        const actualText = await dropdownList.innerText();
+        for (const city of expectedCities) {
+            expect(actualText).toContain(city);
+        }
+    });
+
+    test('verify "Thành phố" dropdown shows correct selected value', async ({ page }) => {
+        const cityToSelect = 'Hà Nội';
+        const dropdownBtn = page.getByRole('button', { name: 'Thành phố' }).first();
+
+        await dropdownBtn.click();
+        // Click the option from the listbox
+        await page.getByRole('option', { name: cityToSelect, exact: true }).click();
+
+        // After selection, the button should show the selected city name
+        await expect(dropdownBtn).toContainText(cityToSelect);
+    });
+
+});
