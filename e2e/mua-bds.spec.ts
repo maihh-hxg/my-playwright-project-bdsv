@@ -2,9 +2,14 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Mua BĐS Screen', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/danh-sach-ban-bat-dong-san');
-        // Wait for the page to load and listings to appear
-        await page.waitForLoadState('networkidle');
+        // Tăng timeout và chỉ đợi tải xong khung HTML để tránh bị treo
+        await page.goto('/danh-sach-ban-bat-dong-san', {
+            waitUntil: 'domcontentloaded',
+            timeout: 60000
+        });
+
+        // Đợi nút Thành phố hiện ra là có thể bắt đầu test
+        await expect(page.getByRole('button', { name: 'Thành phố' })).toBeVisible({ timeout: 30000 });
     });
 
     test('verify page title and filters are visible', async ({ page }) => {
@@ -77,4 +82,42 @@ test.describe('Mua BĐS Screen', () => {
             await expect(page.getByRole('button', { name: '2', exact: true }).first().or(page.getByText('2', { exact: true }).first())).toBeVisible();
         }
     });
+
+    //Verify case user select Thành phố is "Hà Nội"
+    test('verify case user select Thành phố is "Hà Nội"', async ({ page }) => {
+        const selectCity = page.getByRole('button', { name: 'Thành phố' });
+        await selectCity.click();
+        await page.getByRole('option', { name: 'Hà Nội' }).click();
+        await expect(selectCity).toContainText('Hà Nội');
+    });
+
+
+    test('verify Ward dropdown updates when City is selected', async ({ page }) => {
+        // 1. Click mở dropdown Thành phố
+        const cityBtn = page.getByRole('button', { name: 'Thành phố' });
+        await cityBtn.click();
+
+        // 2. CHỌN HÀ NỘI: Thay vì click vào thẻ option ẩn, 
+        // ta tìm đúng cái "nhãn" hiển thị trong danh sách xổ xuống.
+        // Thử dùng listitem hoặc quét text rộng hơn
+        await page.locator('li, div, [role="option"]').filter({ hasText: /^Hà Nội$/ }).first().click();
+
+        // 3. ĐỢI NÚT PHƯỜNG XÃ SẴN SÀNG (Enabled)
+        const wardBtn = page.getByRole('button', { name: 'Phường xã' });
+
+        // Đợi cho đến khi trạng thái "disabled" biến mất (Tăng timeout lên 20s)
+        await expect(wardBtn).toBeEnabled({ timeout: 20000 });
+
+        // 4. Click mở Phường xã
+        await wardBtn.click();
+
+        // 5. Kiểm tra "Cầu Giấy" xuất hiện trong danh sách mới
+        const cauGiay = page.locator('li, div, [role="option"]').filter({ hasText: /^Cầu Giấy$/ }).first();
+        await expect(cauGiay).toBeVisible({ timeout: 10000 });
+
+        // 6. Chọn và Verify kết quả cuối
+        await cauGiay.click();
+        await expect(wardBtn).toContainText('Cầu Giấy');
+    });
+
 });
